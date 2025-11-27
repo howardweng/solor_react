@@ -8,18 +8,7 @@ from app.schemas.pcs import PcsInfoResponse, PcsAlertResponse
 router = APIRouter()
 
 
-@router.get("/{pcs_number}", response_model=PcsInfoResponse)
-async def get_pcs_info(
-    pcs_number: int = Path(..., ge=1, le=12, description="PCS unit number"),
-):
-    """
-    Get PCS unit information.
-
-    Equivalent to Flask /api/pcs_info/<pcs_number>
-    """
-    return PcsInfoResponse(pcs_number=pcs_number)
-
-
+# NOTE: Static routes must be defined before dynamic routes
 @router.get("/alert", response_model=PcsAlertResponse)
 async def get_pcs_alert(redis: RedisGTRClient = None):
     """
@@ -47,3 +36,15 @@ async def get_pcs_alert(redis: RedisGTRClient = None):
         fault_status1=int_to_binary_string(0),
         fault_status2=int_to_binary_string(0),
     )
+
+
+@router.get("/{pcs_number}", response_model=PcsInfoResponse)
+async def get_pcs_info(
+    pcs_number: int = Path(..., ge=1, le=12, description="PCS unit number"),
+):
+    """
+    Get PCS unit information.
+
+    Equivalent to Flask /api/pcs_info/<pcs_number>
+    """
+    return PcsInfoResponse(pcs_number=pcs_number)

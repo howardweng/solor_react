@@ -31,7 +31,40 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 def auth_headers() -> dict[str, str]:
     """
     Fixture for authenticated requests.
-
     In production, this would create a real token.
     """
     return {"Authorization": "Bearer test-token"}
+
+
+def check_response_or_skip(response, expected_status=200):
+    """
+    Check response status. Skip test if 503 (DB unavailable).
+
+    Returns the response data if successful.
+    Raises pytest.skip if 503.
+    Raises AssertionError if other unexpected status.
+    """
+    if response.status_code == 503:
+        pytest.skip(f"Database unavailable (503): {response.json().get('detail', 'No detail')}")
+
+    assert response.status_code == expected_status, (
+        f"Expected {expected_status}, got {response.status_code}: {response.text}"
+    )
+    return response.json()
+
+
+def check_response_or_skip_multi(response, expected_statuses):
+    """
+    Check response against multiple valid statuses. Skip if 503.
+
+    Args:
+        response: HTTP response
+        expected_statuses: list of valid status codes (e.g., [200, 422])
+    """
+    if response.status_code == 503:
+        pytest.skip(f"Database unavailable (503): {response.json().get('detail', 'No detail')}")
+
+    assert response.status_code in expected_statuses, (
+        f"Expected one of {expected_statuses}, got {response.status_code}: {response.text}"
+    )
+    return response.json() if response.status_code == 200 else None
