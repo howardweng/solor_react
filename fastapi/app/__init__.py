@@ -1,0 +1,1 @@
+"""SolarHub FastAPI Application."""
