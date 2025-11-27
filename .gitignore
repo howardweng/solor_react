@@ -12,8 +12,6 @@ dist
 dist-ssr
 *.local
 
-# MCP config
-.mcp.json
 
 # Editor directories and files
 .vscode/*

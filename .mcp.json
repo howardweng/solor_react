@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["@anthropic-ai/mcp-puppeteer-server"]
+    }
+  }
+}
