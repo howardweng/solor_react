@@ -1,6 +1,6 @@
 "use client"
 
-import { type LucideIcon } from "lucide-react"
+import * as React from "react"
 import { Link } from "react-router-dom"
 
 import {
@@ -17,7 +17,7 @@ export function NavProjects({
   projects: {
     name: string
     url: string
-    icon: LucideIcon
+    icon: React.ReactNode
   }[]
 }) {
   return (
@@ -28,7 +28,7 @@ export function NavProjects({
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
               <Link to={item.url}>
-                <item.icon />
+                {item.icon}
                 <span>{item.name}</span>
               </Link>
             </SidebarMenuButton>

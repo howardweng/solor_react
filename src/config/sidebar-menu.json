@@ -1,0 +1,118 @@
+{
+  "teams": [
+    {
+      "name": "SolarHub",
+      "icon": "sunny",
+      "iconColor": "#fff",
+      "plan": "IoT Dashboard"
+    }
+  ],
+  "navMain": [
+    {
+      "title": "Dashboard",
+      "url": "/dashboard",
+      "icon": "dashboard",
+      "iconColor": "#3b82f6"
+    },
+    {
+      "title": "Devices",
+      "url": "/devices",
+      "icon": "sunny",
+      "iconColor": "#f97316",
+      "items": [
+        {
+          "title": "Solar Panels",
+          "url": "/devices/panels",
+          "items": [
+            { "title": "Panel A1", "url": "/devices/panels/a1" },
+            { "title": "Panel A2", "url": "/devices/panels/a2" },
+            { "title": "Panel B1", "url": "/devices/panels/b1" }
+          ]
+        },
+        {
+          "title": "Inverters",
+          "url": "/devices/inverters",
+          "items": [
+            { "title": "Main Inverter", "url": "/devices/inverters/main" },
+            { "title": "Backup Inverter", "url": "/devices/inverters/backup" }
+          ]
+        },
+        {
+          "title": "Sensors",
+          "url": "/devices/sensors"
+        }
+      ]
+    },
+    {
+      "title": "Analytics",
+      "url": "/analytics",
+      "icon": "bar_chart",
+      "iconColor": "#a855f7",
+      "items": [
+        {
+          "title": "Reports",
+          "url": "/analytics/reports",
+          "items": [
+            { "title": "Daily Report", "url": "/analytics/reports/daily" },
+            { "title": "Weekly Report", "url": "/analytics/reports/weekly" },
+            { "title": "Monthly Report", "url": "/analytics/reports/monthly" }
+          ]
+        },
+        {
+          "title": "Charts",
+          "url": "/analytics/charts"
+        },
+        {
+          "title": "Export",
+          "url": "/analytics/export"
+        }
+      ]
+    },
+    {
+      "title": "Energy",
+      "url": "/energy",
+      "icon": "bolt",
+      "iconColor": "#eab308"
+    },
+    {
+      "title": "Battery",
+      "url": "/battery",
+      "icon": "battery_charging_full",
+      "iconColor": "#22c55e"
+    },
+    {
+      "title": "Settings",
+      "url": "/settings",
+      "icon": "settings",
+      "iconColor": "#6b7280",
+      "items": [
+        {
+          "title": "General",
+          "url": "/settings"
+        },
+        {
+          "title": "Notifications",
+          "url": "/settings#notifications"
+        },
+        {
+          "title": "Security",
+          "url": "/settings#security"
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Users",
+      "url": "/users",
+      "icon": "people",
+      "iconColor": "#06b6d4"
+    },
+    {
+      "name": "Alerts",
+      "url": "/alerts",
+      "icon": "notifications",
+      "iconColor": "#ef4444"
+    }
+  ]
+}
