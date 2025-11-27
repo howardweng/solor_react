@@ -29,8 +29,8 @@ dependencies = [
     "httpx>=0.28.0",
     "orjson>=3.10.0",
 
-    # Notifications
-    "lotify>=2.4.0",
+    # Notifications (optional)
+    "lotify>=2.3.4",
     "pyzmq>=26.2.0",
 ]
 

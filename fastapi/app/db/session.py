@@ -1,17 +1,22 @@
 """Async database session management for multiple databases."""
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Literal
 
+from sqlalchemy import text
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
+from app.core.exceptions import DatabaseConnectionError
+
+logger = logging.getLogger(__name__)
 
 # Database identifiers
 DatabaseName = Literal[
@@ -22,11 +27,12 @@ DatabaseName = Literal[
 
 
 class DatabaseManager:
-    """Manages multiple async database connections."""
+    """Manages multiple async database connections with graceful error handling."""
 
     def __init__(self):
         self._engines: dict[str, AsyncEngine] = {}
         self._session_factories: dict[str, async_sessionmaker[AsyncSession]] = {}
+        self._connection_status: dict[str, bool] = {}
 
     def _get_database_url(self, db_name: DatabaseName) -> str:
         """Get database URL for a specific database."""
@@ -59,6 +65,7 @@ class DatabaseManager:
             pool_size=5,
             max_overflow=10,
             pool_recycle=3600,
+            connect_args={"connect_timeout": 5},  # 5 second timeout
         )
 
     def get_engine(self, db_name: DatabaseName) -> AsyncEngine:
@@ -82,17 +89,76 @@ class DatabaseManager:
             )
         return self._session_factories[db_name]
 
+    def is_connected(self, db_name: DatabaseName) -> bool:
+        """Check if database is connected."""
+        return self._connection_status.get(db_name, False)
+
     @asynccontextmanager
-    async def session(self, db_name: DatabaseName) -> AsyncGenerator[AsyncSession, None]:
-        """Context manager for database sessions."""
+    async def session(
+        self, db_name: DatabaseName, required: bool = True
+    ) -> AsyncGenerator[AsyncSession | None, None]:
+        """
+        Context manager for database sessions with graceful error handling.
+
+        Args:
+            db_name: Database to connect to
+            required: If True, raise exception on connection failure.
+                     If False, yield None and continue gracefully.
+        """
         factory = self.get_session_factory(db_name)
-        async with factory() as session:
-            try:
-                yield session
-                await session.commit()
-            except Exception:
-                await session.rollback()
-                raise
+        try:
+            async with factory() as session:
+                # Test connection
+                await session.execute(text("SELECT 1"))
+                self._connection_status[db_name] = True
+                try:
+                    yield session
+                    await session.commit()
+                except Exception:
+                    await session.rollback()
+                    raise
+        except OperationalError as e:
+            self._connection_status[db_name] = False
+            logger.warning(f"Database '{db_name}' connection failed: {e}")
+            if required:
+                raise DatabaseConnectionError(
+                    f"Database '{db_name}' is unavailable. Please try again later."
+                )
+            yield None
+        except SQLAlchemyError as e:
+            self._connection_status[db_name] = False
+            logger.error(f"Database '{db_name}' error: {e}")
+            if required:
+                raise DatabaseConnectionError(f"Database error: {e}")
+            yield None
+
+    @asynccontextmanager
+    async def optional_session(
+        self, db_name: DatabaseName
+    ) -> AsyncGenerator[AsyncSession | None, None]:
+        """
+        Context manager that yields None if database is unavailable.
+
+        Use this for non-critical operations where you want to continue
+        even if the database is down.
+        """
+        async with self.session(db_name, required=False) as session:
+            yield session
+
+    async def check_connection(self, db_name: DatabaseName) -> bool:
+        """Test database connection and return status."""
+        try:
+            async with self.session(db_name, required=True):
+                return True
+        except DatabaseConnectionError:
+            return False
+
+    async def health_check(self) -> dict[str, bool]:
+        """Check all database connections and return status dict."""
+        status = {}
+        for db_name in ["ess", "schedule", "meter", "pcs", "inverter", "baseline"]:
+            status[db_name] = await self.check_connection(db_name)
+        return status
 
     async def close_all(self) -> None:
         """Close all database connections."""
@@ -100,6 +166,7 @@ class DatabaseManager:
             await engine.dispose()
         self._engines.clear()
         self._session_factories.clear()
+        self._connection_status.clear()
 
 
 # Global database manager instance
@@ -109,8 +176,16 @@ db_manager = DatabaseManager()
 async def get_db_session(
     db_name: DatabaseName = "ess",
 ) -> AsyncGenerator[AsyncSession, None]:
-    """Dependency for getting a database session."""
-    async with db_manager.session(db_name) as session:
+    """Dependency for getting a database session (raises on failure)."""
+    async with db_manager.session(db_name, required=True) as session:
+        yield session
+
+
+async def get_optional_db_session(
+    db_name: DatabaseName = "ess",
+) -> AsyncGenerator[AsyncSession | None, None]:
+    """Dependency for getting an optional database session (returns None on failure)."""
+    async with db_manager.session(db_name, required=False) as session:
         yield session
 
 
@@ -142,4 +217,17 @@ async def get_pcs_session() -> AsyncGenerator[AsyncSession, None]:
 async def get_inverter_session() -> AsyncGenerator[AsyncSession, None]:
     """Get Inverter database session."""
     async for session in get_db_session("inverter"):
+        yield session
+
+
+# Optional session dependencies (graceful failure)
+async def get_optional_ess_session() -> AsyncGenerator[AsyncSession | None, None]:
+    """Get optional ESS database session."""
+    async for session in get_optional_db_session("ess"):
+        yield session
+
+
+async def get_optional_meter_session() -> AsyncGenerator[AsyncSession | None, None]:
+    """Get optional Meter database session."""
+    async for session in get_optional_db_session("meter"):
         yield session
