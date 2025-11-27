@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# SolarHub - IoT Dashboard for Solar Energy Systems
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack IoT dashboard for monitoring solar energy storage systems including BESS (Battery Energy Storage System), PCS (Power Conversion System), inverters, and power meters.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+react_solar/
+├── react_frontend/     # React + Vite + TypeScript frontend
+├── fastapi_backend/    # FastAPI + SQLAlchemy backend
+├── CLAUDE.md           # Development guide for AI assistants
+└── README.md           # This file
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Quick Start
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js 18+
+- Python 3.11+
+- MySQL database
+- Redis server
+
+### Frontend (React)
+
+```bash
+cd react_frontend
+npm install
+npm run dev
 ```
+
+Frontend runs at: http://localhost:5173
+
+### Backend (FastAPI)
+
+```bash
+cd fastapi_backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+cp .env.example .env       # Edit with your database credentials
+uvicorn app.main:app --reload --port 8000
+```
+
+Backend runs at: http://localhost:8000
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Tech Stack
+
+### Frontend
+- **React 19** with TypeScript
+- **Vite 7** for build tooling
+- **Tailwind CSS v4** for styling
+- **shadcn/ui** component library
+- **Recharts** for data visualization
+- **React Router DOM v7** for routing
+
+### Backend
+- **FastAPI** for REST API
+- **SQLAlchemy 2.0** (async) for ORM
+- **MySQL** (aiomysql) for databases
+- **Redis** for real-time data caching
+- **JWT** for authentication
+- **Pydantic** for data validation
+
+## Features
+
+- Real-time monitoring of solar energy systems
+- Battery storage system (BESS) management
+- Power conversion system (PCS) alerts
+- Inverter MPPT and string monitoring
+- Power meter readings and analytics
+- Energy trading schedule management
+- Power loss and efficiency analysis
+- User authentication and authorization
+- System topology visualization
+
+## API Documentation
+
+See [fastapi_backend/SPEC.md](fastapi_backend/SPEC.md) for complete API documentation including:
+- 28 REST endpoints
+- Request/response examples
+- Authentication flow
+- Database architecture
+
+## Development
+
+### Run Tests (Backend)
+
+```bash
+cd fastapi_backend
+source .venv/bin/activate
+pytest tests/ -v
+```
+
+### Generate Test Report
+
+```bash
+pytest tests/ -p tests.pytest_md_report --md-report-auto
+```
+
+Reports saved to: `fastapi_backend/tests/reports/`
+
+## License
+
+MIT
